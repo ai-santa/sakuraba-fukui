@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>お客様の声レポート</title>
+<style>
+  :root{
+    --blue:#2f6fed; --ink:#1c2434; --mid:#6b7684; --line:#e6e9ef;
+    --bg:#f6f7fb; --card:#fff; --pos:#2f6fed; --neg:#e8604c; --ok:#27ae60;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; padding:0 0 40px; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
+    -webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:720px; margin:0 auto; padding:0 14px;}
+  header{background:var(--card); border-bottom:1px solid var(--line); padding:16px 0; margin-bottom:16px;}
+  h1{font-size:17px; margin:0 0 4px; font-weight:700;}
+  .sub{font-size:12px; color:var(--mid);}
+  .periods{display:flex; gap:6px; flex-wrap:wrap; margin:14px 0 18px;}
+  .pbtn{
+    flex:1 1 auto; min-width:74px; text-align:center; padding:9px 6px; font-size:13px;
+    background:var(--card); border:1.5px solid var(--line); border-radius:9px; cursor:pointer;
+    font-weight:600; color:var(--mid); user-select:none;
+  }
+  .pbtn.on{background:var(--blue); border-color:var(--blue); color:#fff;}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; margin-bottom:14px;}
+  .card h2{font-size:14px; margin:0 0 12px; font-weight:700; display:flex; align-items:center; gap:6px;}
+  .card h2 .note{font-size:11px; color:var(--mid); font-weight:500;}
+  .kpis{display:flex; gap:10px; flex-wrap:wrap;}
+  .kpi{flex:1 1 100px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px 12px; text-align:center;}
+  .kpi .n{font-size:26px; font-weight:800; line-height:1.1;}
+  .kpi .l{font-size:11px; color:var(--mid); margin-top:5px;}
+  .kpi .s{font-size:11px; color:var(--mid); margin-top:2px;}
+  .row{margin-bottom:9px;}
+  .rowtop{display:flex; justify-content:space-between; align-items:baseline; gap:8px; font-size:13px; margin-bottom:4px;}
+  .rowtop .lbl{flex:1; line-height:1.35;}
+  .rowtop .val{font-weight:700; white-space:nowrap; font-size:12.5px;}
+  .bar{height:7px; background:#eef1f6; border-radius:4px; overflow:hidden;}
+  .bar span{display:block; height:100%; background:var(--pos); border-radius:4px;}
+  .row.neg .bar span{background:var(--neg);}
+  .row.neg .val{color:var(--neg);}
+  .msg{border-left:3px solid var(--line); padding:9px 0 9px 11px; margin-bottom:11px;}
+  .msg .t{font-size:13.5px; line-height:1.6; white-space:pre-wrap; word-break:break-word;}
+  .msg .d{font-size:11px; color:var(--mid); margin-top:5px;}
+  .empty{font-size:13px; color:var(--mid); text-align:center; padding:18px 0;}
+  .alert{background:#fff4f2; border:1px solid #f6d5cf; color:#a8412f; border-radius:10px; padding:13px; font-size:13px; line-height:1.6;}
+  .hint{font-size:11.5px; color:var(--mid); margin-top:10px; line-height:1.6;}
+  .loading{text-align:center; padding:40px 0; color:var(--mid); font-size:13px;}
+  .printbtn{
+    flex:0 0 auto; padding:8px 12px; font-size:12px; font-weight:600; cursor:pointer;
+    background:var(--card); color:var(--mid); border:1.5px solid var(--line); border-radius:9px;
+  }
+  @media print{
+    body{background:#fff;} .periods{display:none;} .printbtn{display:none;} .card{break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap" style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+    <div>
+      <h1 id="title">お客様の声レポート</h1>
+      <div class="sub" id="subtitle">読み込んでいます…</div>
+    </div>
+    <button class="printbtn" onclick="window.print()">印刷・PDF</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="periods" id="periods">
+    <div class="pbtn" data-p="thisWeek">今週</div>
+    <div class="pbtn" data-p="lastWeek">先週</div>
+    <div class="pbtn on" data-p="thisMonth">今月</div>
+    <div class="pbtn" data-p="lastMonth">先月</div>
+    <div class="pbtn" data-p="last3">過去3ヶ月</div>
+    <div class="pbtn" data-p="all">全期間</div>
+  </div>
+  <div id="body"><div class="loading">読み込んでいます…</div></div>
+</div>
+
+<script src="config.js"></script>
+<script>
+// =============================================================
+// お客様の声レポート v1.1 - 2026-08-23 週単位の集計（今週・先週ボタン＋週ごとの推移グラフ）を追加
+//                  v1.0 - 2026-07-26
+// クチコミ作成時にお客様が答えた内容を集計して表示する。
+// URLの ?key=（合言葉）が Netlify の環境変数 REPORT_KEY と一致した時だけ見られる。
+// =============================================================
+
+var REPORT_KEY = new URLSearchParams(location.search).get('key') || '';
+var period = 'thisMonth';
+
+// ---------- 選択肢IDを日本語ラベルに戻す（config.js から） ----------
+function labelOf(kind, id) {
+  var list = [];
+  if (kind === 'service') list = SALON_CONFIG.services || [];
+  else if (kind === 'recommendation') list = SALON_CONFIG.recommendations || [];
+  else if (kind === 'staff') list = SALON_CONFIG.staffImpressions || [];
+  else if (kind === 'goodPoint') {
+    var g = SALON_CONFIG.goodPoints || {};
+    Object.keys(g).forEach(function (k) { list = list.concat(g[k] || []); });
+  }
+  for (var i = 0; i < list.length; i++) {
+    if (list[i] && list[i].id === id) return list[i];
+  }
+  return { id: id, label: id };
+}
+
+var GENDER_LABEL = { male: '男性', female: '女性', other: 'その他・回答しない' };
+var AGE_LABEL = {
+  '10s': '10代', '20s': '20代', '30s': '30代', '40s': '40代',
+  '50s': '50代', '60s': '60代', '70s': '70代以上'
+};
+var TENSION_LABEL = { '1': '落ち着いて', '2': 'ひかえめ', '3': 'おまかせ', '4': '明るめ', '5': '元気に' };
+
+// ---------- 表示部品 ----------
+function esc(s) {
+  return String(s).replace(/[&<>"]/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+  });
+}
+
+// 件数の多い順に並べて棒グラフにする
+function ranking(obj, total, kind, limit) {
+  var keys = Object.keys(obj || {});
+  if (!keys.length) return '<div class="empty">まだデータがありません</div>';
+  keys.sort(function (a, b) { return obj[b] - obj[a]; });
+  if (limit) keys = keys.slice(0, limit);
+  var max = obj[keys[0]] || 1;
+  var html = '';
+  keys.forEach(function (k) {
+    var item = kind
+      ? labelOf(kind, k)
+      : { label: (GENDER_LABEL[k] || AGE_LABEL[k] || TENSION_LABEL[k] || k), negative: false };
+    var n = obj[k];
+    var pctOfTotal = total ? Math.round((n / total) * 100) : 0;
+    var w = Math.round((n / max) * 100);
+    html +=
+      '<div class="row' + (item.negative ? ' neg' : '') + '">' +
+        '<div class="rowtop"><div class="lbl">' + esc(item.label) + '</div>' +
+        '<div class="val">' + n + '件 <span style="color:var(--mid);font-weight:500;">' + pctOfTotal + '%</span></div></div>' +
+        '<div class="bar"><span style="width:' + w + '%"></span></div>' +
+      '</div>';
+  });
+  return html;
+}
+
+// ネガティブ選択（改善のヒント）だけ抜き出す
+function negativeOnly(obj) {
+  var out = {};
+  Object.keys(obj || {}).forEach(function (k) {
+    if (labelOf('goodPoint', k).negative) out[k] = obj[k];
+  });
+  return out;
+}
+
+function fmtDate(iso) {
+  var d = new Date(new Date(iso).getTime() + 9 * 3600 * 1000);
+  return d.getUTCFullYear() + '/' + (d.getUTCMonth() + 1) + '/' + d.getUTCDate();
+}
+
+// 週ごとの推移（byWeek：キーは週の月曜日 "2026-08-17"）を古い週→新しい週の順で棒グラフに
+function weeklyTrend(obj) {
+  var keys = Object.keys(obj || {});
+  if (!keys.length) return '<div class="empty">まだデータがありません</div>';
+  keys.sort();
+  var max = 1;
+  keys.forEach(function (k) { if (obj[k] > max) max = obj[k]; });
+  var html = '';
+  keys.forEach(function (k) {
+    var mon = new Date(k + 'T00:00:00Z');
+    var sun = new Date(mon); sun.setUTCDate(mon.getUTCDate() + 6);
+    var lbl = (mon.getUTCMonth() + 1) + '/' + mon.getUTCDate() + '〜' + (sun.getUTCMonth() + 1) + '/' + sun.getUTCDate();
+    var n = obj[k];
+    var w = Math.round((n / max) * 100);
+    html +=
+      '<div class="row">' +
+        '<div class="rowtop"><div class="lbl">' + esc(lbl) + '</div>' +
+        '<div class="val">' + n + '件</div></div>' +
+        '<div class="bar"><span style="width:' + w + '%"></span></div>' +
+      '</div>';
+  });
+  return html;
+}
+
+// ---------- 画面を組み立てる ----------
+function render(s) {
+  document.getElementById('subtitle').textContent =
+    SALON_CONFIG.salonName + '　|　' + s.periodLabel + '　（' + fmtDate(s.generatedAt) + ' 時点）';
+
+  if (!s.total) {
+    document.getElementById('body').innerHTML =
+      '<div class="card"><div class="empty">この期間のデータはまだありません。<br>お客様がクチコミを作成すると、ここに集まっていきます。</div></div>';
+    return;
+  }
+
+  var postRate = Math.round((s.posted / s.total) * 100);
+  var negs = negativeOnly(s.byGoodPoint);
+  var negCount = Object.keys(negs).length;
+
+  var html = '';
+
+  // 数字のまとめ
+  html +=
+    '<div class="kpis" style="margin-bottom:14px;">' +
+      '<div class="kpi"><div class="n">' + s.total + '</div><div class="l">クチコミ作成</div></div>' +
+      '<div class="kpi"><div class="n">' + s.copied + '</div><div class="l">コピーした人</div></div>' +
+      '<div class="kpi"><div class="n" style="color:var(--ok)">' + s.posted + '</div><div class="l">Googleへ進んだ人</div><div class="s">' + postRate + '%</div></div>' +
+    '</div>';
+
+  // 週ごとの推移（週表示のときは1行だけになるので、月以上の期間のときだけ出す）
+  if (s.period !== 'thisWeek' && s.period !== 'lastWeek') {
+    html += '<div class="card"><h2>📅 週ごとのクチコミ作成数 <span class="note">月曜始まり</span></h2>' +
+      weeklyTrend(s.byWeek) + '</div>';
+  }
+
+  // 改善のヒント（ネガティブ選択があるときだけ出す）
+  if (negCount) {
+    html += '<div class="card"><h2>⚠️ 気になった点として選ばれたもの</h2>' +
+      '<div class="alert">お客様が「ここは少し気になった」と選んだ項目です。件数が多いものから見直すと、満足度がさらに上がります。</div>' +
+      '<div style="margin-top:12px;">' + ranking(negs, s.total, 'goodPoint') + '</div></div>';
+  }
+
+  html += '<div class="card"><h2>💡 満足していただけた点 <span class="note">上位10件</span></h2>' +
+    ranking(s.byGoodPoint, s.total, 'goodPoint', 10) +
+    '<div class="hint">ここに出てくる言葉が、そのままお店の「強み」です。チラシやSNSの文章にも使えます。</div></div>';
+
+  html += '<div class="card"><h2>🛎 よく使われたサービス</h2>' + ranking(s.byService, s.total, 'service') + '</div>';
+
+  html += '<div class="card"><h2>🙌 人にすすめたい理由</h2>' + ranking(s.byRecommendation, s.total, 'recommendation', 10) + '</div>';
+
+  html += '<div class="card"><h2>👤 スタッフ・店内の印象</h2>' + ranking(s.byStaff, s.total, 'staff', 10) + '</div>';
+
+  html += '<div class="card"><h2>📊 お客様の男女比</h2>' + ranking(s.byGender, s.total, null) + '</div>';
+
+  html += '<div class="card"><h2>🎂 年代</h2>' + ranking(s.byAge, s.total, null) + '</div>';
+
+  // 自由メッセージ
+  var msgs = s.freeTexts || [];
+  html += '<div class="card"><h2>✍️ いただいた自由メッセージ <span class="note">' + msgs.length + '件</span></h2>';
+  if (!msgs.length) {
+    html += '<div class="empty">この期間の自由メッセージはありません</div>';
+  } else {
+    msgs.forEach(function (m) {
+      html += '<div class="msg"><div class="t">' + esc(m.text) + '</div><div class="d">' + fmtDate(m.at) + '</div></div>';
+    });
+  }
+  html += '</div>';
+
+  document.getElementById('body').innerHTML = html;
+}
+
+// ---------- データを取りにいく ----------
+function load() {
+  document.getElementById('body').innerHTML = '<div class="loading">読み込んでいます…</div>';
+  fetch('/api/stats?period=' + encodeURIComponent(period) + '&key=' + encodeURIComponent(REPORT_KEY))
+    .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+    .then(function (res) {
+      if (!res.ok) {
+        document.getElementById('subtitle').textContent = SALON_CONFIG.salonName;
+        document.getElementById('body').innerHTML =
+          '<div class="card"><div class="alert">' + esc(res.j.error || '表示できませんでした') +
+          '<br><br>お手元のURLが正しいかご確認ください。ご不明な場合は担当者までご連絡ください。</div></div>';
+        return;
+      }
+      render(res.j);
+    })
+    .catch(function () {
+      document.getElementById('body').innerHTML =
+        '<div class="card"><div class="alert">通信に失敗しました。電波の良い場所でもう一度お試しください。</div></div>';
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  document.title = SALON_CONFIG.salonName + ' | お客様の声レポート';
+  document.getElementById('title').textContent = 'お客様の声レポート';
+  document.querySelectorAll('#periods .pbtn').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.querySelectorAll('#periods .pbtn').forEach(function (x) { x.classList.remove('on'); });
+      b.classList.add('on');
+      period = b.getAttribute('data-p');
+      load();
+    });
+  });
+  load();
+});
+</script>
+</body>
+</html>

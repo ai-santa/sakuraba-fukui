@@ -1,0 +1,9 @@
+{
+  "name": "ai-kuchikomi-shop",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AIクチコミ 店舗サイト（Netlify Functions用の依存関係のみ）",
+  "dependencies": {
+    "@netlify/blobs": ">=7.0.0"
+  }
+}

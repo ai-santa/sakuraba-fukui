@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="ja">
+<!-- TEMPLATE_VERSION: v1.5 (2026-08-23) アクセス数計測を追加（config.jsのgaMeasurementIdにGoogleアナリティクス測定IDを入れた店舗だけ有効）／ v1.4 (2026-08-16) 中立ネガ（思い浮かばなかった系）をプロンプトから除外＝不満の創作防止／ v1.3 (2026-07-30) 年代を6区分に変更／貼り付け欄を廃止しGoogleクチコミボタンを2箇所に／ v1.2 (2026-07-29) 生成失敗時はコピー・投稿ボタンを隠しエラー文の投稿を防止／ v1.1 (2026-07-25) プログレスバー拡大(質問n/7・％表示)＋結果ページに投稿手順と写真動画の案内・投稿ボタン拡大 -->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title id="page-title">クチコミ作成</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --navy:    #1c1a17;
+      --blue:    #a07b3e;
+      --blue-lt: #e2d2ae;
+      --cream:   #faf8f4;
+      --warm:    #f3ece1;
+      --dark:    #23201b;
+      --mid:     #6b6154;
+      --light:   #a99c88;
+      --white:   #ffffff;
+      --neg:     #c0392b;
+      --shadow:  rgba(160,123,62,0.15);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background: var(--cream);
+      color: var(--dark);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── 背景透かし（config.jsの backgroundImage で指定） ── */
+    #bg-watermark {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background-repeat: no-repeat;
+      background-position: center center;
+      background-size: 320px auto;
+      opacity: 0;            /* config未指定なら見えない */
+      pointer-events: none;
+    }
+    body > *:not(#bg-watermark) { position: relative; z-index: 1; }
+
+    /* ── ヘッダー ── */
+    .header {
+      width: 100%;
+      background: var(--navy);
+      text-align: center;
+      padding: 20px 16px 16px;
+    }
+    .header-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px;
+      font-weight: 300;
+      letter-spacing: 0.2em;
+      color: var(--white);
+      display: block;
+      text-transform: uppercase;
+    }
+    .header-sub {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--blue-lt);
+      margin-top: 4px;
+      text-transform: uppercase;
+    }
+
+    /* ── プログレスバー（v1.1：太く・数字を大きく・上部に固定） ── */
+    .progress-wrap {
+      width: 100%;
+      max-width: 480px;
+      padding: 14px 20px 10px;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: var(--cream);
+    }
+    .progress-text {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 7px;
+    }
+    .progress-count {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--navy);
+      letter-spacing: 0.03em;
+    }
+    .progress-count b {
+      font-size: 21px;
+      font-weight: 700;
+      color: var(--blue);
+      letter-spacing: 0;
+    }
+    .progress-percent {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--blue);
+    }
+    .progress-bar {
+      height: 10px;
+      background: var(--warm);
+      border: 1px solid var(--blue-lt);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--blue), var(--navy));
+      border-radius: 5px;
+      transition: width 0.45s ease;
+    }
+
+    /* ── カード ── */
+    .card {
+      width: 100%;
+      max-width: 480px;
+      background: var(--white);
+      border-radius: 16px;
+      margin: 16px 16px 24px;
+      padding: 28px 24px;
+      box-shadow: 0 4px 24px var(--shadow);
+      animation: fadeUp 0.4s ease;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── ウェルカム画面 ── */
+    .welcome-icon { font-size: 40px; text-align: center; margin-bottom: 16px; }
+    .welcome-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px;
+      font-weight: 300;
+      color: var(--blue);
+      text-align: center;
+      letter-spacing: 0.08em;
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+    .welcome-body {
+      font-size: 13.5px;
+      line-height: 1.9;
+      color: var(--mid);
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .welcome-note {
+      font-size: 11.5px;
+      color: var(--light);
+      text-align: center;
+      line-height: 1.8;
+      padding: 12px;
+      background: var(--warm);
+      border-radius: 8px;
+      margin-bottom: 24px;
+    }
+
+    /* ── 質問ラベル ── */
+    /* v1.1：上のプログレスバーが「質問 n / 7」を大きく出すようになったため、
+       カード内の小さな「Q n / 7」は二重表示になる。非表示にしている。
+       元に戻したいときは、次の行の display:none を消すだけでOK。 */
+    .step-label {
+      display: none;
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--blue);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .question-title {
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--dark);
+      line-height: 1.6;
+      margin-bottom: 6px;
+    }
+    .question-sub {
+      font-size: 12px;
+      color: var(--light);
+      margin-bottom: 20px;
+    }
+
+    /* ── チェックボックス ── */
+    .checkbox-group { display: flex; flex-direction: column; gap: 10px; }
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 16px;
+      border: 1.5px solid var(--blue-lt);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 13.5px;
+      color: var(--dark);
+      user-select: none;
+      line-height: 1.5;
+    }
+    .checkbox-item:hover { background: var(--warm); }
+    .checkbox-item.selected {
+      background: var(--warm);
+      border-color: var(--blue);
+      color: var(--blue);
+      font-weight: 500;
+    }
+    .checkbox-item.negative { color: var(--neg); border-color: #ecc; }
+    .checkbox-item.negative.selected { background: #fff0ee; border-color: var(--neg); }
+    .checkbox-box {
+      width: 20px; height: 20px;
+      border: 2px solid var(--blue-lt);
+      border-radius: 4px;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+    .checkbox-item.selected .checkbox-box { background: var(--blue); border-color: var(--blue); }
+    .checkbox-item.negative.selected .checkbox-box { background: var(--neg); border-color: var(--neg); }
+    .check-mark { color: white; font-size: 12px; display: none; }
+    .checkbox-item.selected .check-mark { display: block; }
+
+    /* ── ラジオボタン ── */
+    .radio-group { display: flex; flex-wrap: wrap; gap: 10px; }
+    .radio-btn {
+      flex: 1; min-width: 80px;
+      padding: 11px 8px;
+      border: 1.5px solid var(--blue-lt);
+      border-radius: 10px;
+      text-align: center;
+      cursor: pointer;
+      font-size: 13.5px;
+      color: var(--dark);
+      transition: all 0.2s;
+      user-select: none;
+    }
+    .radio-btn:hover { background: var(--warm); }
+    .radio-btn.selected {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: white;
+      font-weight: 500;
+    }
+
+    /* ── テキストエリア ── */
+    textarea {
+      width: 100%;
+      border: 1.5px solid var(--blue-lt);
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 14px;
+      color: var(--dark);
+      resize: vertical;
+      min-height: 110px;
+      outline: none;
+      transition: border-color 0.2s;
+      background: var(--white);
+    }
+    textarea:focus { border-color: var(--blue); }
+    textarea::placeholder { color: var(--light); }
+
+    /* ── ボタン ── */
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 12px;
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--navy), var(--blue));
+      color: white;
+      box-shadow: 0 4px 16px rgba(45,106,159,0.35);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(45,106,159,0.45); }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .btn-secondary {
+      background: var(--warm);
+      color: var(--mid);
+      margin-top: 10px;
+    }
+    .btn-secondary:hover { background: var(--blue-lt); }
+    .btn-outline {
+      background: transparent;
+      border: 1.5px solid var(--blue);
+      color: var(--blue);
+      margin-top: 10px;
+    }
+    .btn-outline:hover { background: var(--warm); }
+    /* v1.1：投稿ボタンは最終ゴールなので、他のボタンよりはっきり大きくする */
+    .btn-google {
+      background: linear-gradient(135deg, #4285f4, #1a73e8);
+      color: white;
+      margin-top: 10px;
+      padding: 20px 15px;
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      border-radius: 14px;
+      box-shadow: 0 6px 22px rgba(66,133,244,0.45);
+    }
+    .btn-google:hover { transform: translateY(-1px); }
+    .btn-copy {
+      background: linear-gradient(135deg, #2ecc71, #27ae60);
+      color: white;
+      box-shadow: 0 4px 16px rgba(46,204,113,0.3);
+    }
+    .btn-copy:hover { transform: translateY(-1px); }
+
+    /* ── ローディング ── */
+    .loading-wrap { text-align: center; padding: 20px 0; }
+    .loading-icon { font-size: 36px; animation: spin 2s linear infinite; display: inline-block; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    .loading-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 18px; font-weight: 300;
+      color: var(--blue); margin: 16px 0 8px;
+      letter-spacing: 0.08em;
+    }
+    .loading-sub { font-size: 12px; color: var(--light); }
+
+    /* ── 結果ページ ── */
+    .disclaimer {
+      font-size: 11.5px;
+      color: var(--mid);
+      background: var(--warm);
+      border-left: 3px solid var(--blue-lt);
+      padding: 12px 14px;
+      border-radius: 0 8px 8px 0;
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+    .review-box {
+      background: var(--cream);
+      border: 1px solid var(--blue-lt);
+      border-radius: 10px;
+      padding: 18px;
+      font-size: 14.5px;
+      line-height: 1.9;
+      color: var(--dark);
+      white-space: pre-wrap;
+      margin-bottom: 20px;
+      min-height: 120px;
+    }
+    /* v1.2：生成に失敗したときの表示。
+       このときは下のコピー・投稿ボタンをJSで隠すので、エラー文が投稿されることはない */
+    .review-box.is-error {
+      background: #fdf3f1;
+      border: 1.5px solid var(--neg);
+      color: var(--neg);
+      font-weight: 500;
+      min-height: 0;
+    }
+    .retry-hint {
+      font-size: 13.5px;
+      color: var(--mid);
+      line-height: 1.8;
+      background: var(--warm);
+      border-radius: 8px;
+      padding: 13px 15px;
+      margin-bottom: 20px;
+    }
+    .paste-area {
+      width: 100%;
+      min-height: 80px;
+      border: 1.5px dashed var(--blue-lt);
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 13px;
+      color: var(--mid);
+      background: var(--white);
+      resize: vertical;
+      outline: none;
+      margin-bottom: 8px;
+    }
+    .paste-area:focus { border-color: var(--blue); }
+    .paste-label { font-size: 12px; color: var(--light); margin-bottom: 6px; text-align: center; }
+
+    /* ── このあとの流れ（v1.1で追加） ── */
+    .next-guide {
+      background: var(--warm);
+      border: 2px solid var(--blue);
+      border-radius: 12px;
+      padding: 18px 16px 16px;
+      margin-bottom: 16px;
+    }
+    .next-guide-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--navy);
+      text-align: center;
+      line-height: 1.5;
+      margin-bottom: 18px;
+    }
+    .next-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 11px;
+      margin-bottom: 15px;
+    }
+    .next-step:last-of-type { margin-bottom: 0; }
+    .next-num {
+      flex: 0 0 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--blue);
+      color: var(--white);
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 28px;
+      text-align: center;
+    }
+    .next-body { font-size: 16px; color: var(--dark); line-height: 1.6; padding-top: 2px; }
+    .next-body b { font-weight: 700; color: var(--navy); }
+    .next-body span { display: inline-block; font-size: 13.5px; color: var(--mid); margin-top: 3px; }
+    .next-photo {
+      margin-top: 16px;
+      padding: 14px 14px;
+      background: var(--white);
+      border: 2px dashed var(--blue);
+      border-radius: 10px;
+      font-size: 15px;
+      color: var(--dark);
+      line-height: 1.75;
+    }
+    .next-photo b { font-size: 16px; color: var(--blue); }
+
+    /* ── ページ表示制御 ── */
+    .step { display: none; }
+    .step.active { display: block; }
+
+    /* ── ユーティリティ ── */
+    .mt-16 { margin-top: 16px; }
+    .divider { height: 1px; background: var(--blue-lt); margin: 20px 0; }
+    .result-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 18px; font-weight: 300;
+      color: var(--blue); text-align: center;
+      letter-spacing: 0.1em; margin-bottom: 16px;
+    }
+    .copy-success { text-align: center; font-size: 13px; color: #27ae60; margin-top: 8px; min-height: 20px; }
+    .gender-age-wrap { display: flex; flex-direction: column; gap: 20px; }
+    .sub-label { font-size: 12px; color: var(--mid); font-weight: 500; margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+<div id="bg-watermark" aria-hidden="true"></div>
+
+<div class="header">
+  <span class="header-logo" id="header-salon-name">店舗名</span>
+  <span class="header-sub">Google Review Assistant</span>
+</div>
+
+<div class="progress-wrap" id="progress-wrap" style="display:none;">
+  <div class="progress-text">
+    <span class="progress-count" id="progress-count"></span>
+    <span class="progress-percent" id="progress-percent"></span>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+</div>
+
+<!-- STEP 0: ウェルカム -->
+<div class="card step active" id="step-0">
+  <div class="welcome-icon" id="welcome-icon">🙏</div>
+  <div class="welcome-title" id="welcome-title">ありがとうございます</div>
+  <div class="welcome-body" id="welcome-body"></div>
+  <div class="welcome-note">
+    所要時間：約2〜3分<br>
+    内容をご確認のうえ、よろしければ<br>
+    Google MAPのクチコミへご投稿ください
+  </div>
+  <button class="btn btn-primary" onclick="goStep(1)">はじめる</button>
+</div>
+
+<!-- STEP 1: Q① ペルソナ（性別・年代） -->
+<div class="card step" id="step-1">
+  <div class="step-label">Q 1 / 7</div>
+  <div class="question-title">性別と年代を教えてください</div>
+  <div class="question-sub">クチコミの文体に反映されます</div>
+  <div class="gender-age-wrap">
+    <div>
+      <div class="sub-label">性別</div>
+      <div class="radio-group" id="gender-group">
+        <div class="radio-btn" onclick="selectRadio('gender','female',this)">女性</div>
+        <div class="radio-btn" onclick="selectRadio('gender','male',this)">男性</div>
+        <div class="radio-btn" onclick="selectRadio('gender','other',this)">未回答</div>
+      </div>
+    </div>
+    <div>
+      <div class="sub-label">年代</div>
+      <div class="radio-group" id="age-group">
+        <div class="radio-btn" onclick="selectRadio('age','10s',this)">10代以下</div>
+        <div class="radio-btn" onclick="selectRadio('age','20s',this)">20代</div>
+        <div class="radio-btn" onclick="selectRadio('age','30s',this)">30代</div>
+        <div class="radio-btn" onclick="selectRadio('age','40s',this)">40代</div>
+        <div class="radio-btn" onclick="selectRadio('age','50s',this)">50代</div>
+        <div class="radio-btn" onclick="selectRadio('age','60s',this)">60代以上</div>
+      </div>
+    </div>
+  </div>
+  <div class="mt-16">
+    <button class="btn btn-primary" id="btn-step1-next" onclick="goStep(2)" disabled>次へ</button>
+    <button class="btn btn-secondary" onclick="goStep(0)">戻る</button>
+  </div>
+</div>
+
+<!-- STEP 2: Q② 利用サービス -->
+<div class="card step" id="step-2">
+  <div class="step-label">Q 2 / 7</div>
+  <!-- 🔴 この店だけの例外（2026-09-12 ようすけさん決定）：Q②はメニューではなく【利用シーン】を聞くため、
+       テンプレの「ご利用いただいた商品・サービスを教えてください」から文言を変更している。
+       一括更新のときにテンプレで上書きしないこと（02_店舗\CLAUDE.md の例外表に記載あり） -->
+  <div class="question-title">本日はどのような<br>ご利用でしたか</div>
+  <div class="question-sub">複数選択できます</div>
+  <div class="checkbox-group" id="service-group"></div>
+  <div class="mt-16">
+    <button class="btn btn-primary" id="btn-step2-next" onclick="goStep(3)" disabled>次へ</button>
+    <button class="btn btn-secondary" onclick="goStep(1)">戻る</button>
+  </div>
+</div>
+
+<!-- STEP 3: Q③ 良かった点 -->
+<div class="card step" id="step-3">
+  <div class="step-label">Q 3 / 7</div>
+  <div class="question-title">良かった点を<br>教えてください</div>
+  <div class="question-sub">複数選択できます</div>
+  <div class="checkbox-group" id="good-points-group"></div>
+  <div class="mt-16">
+    <button class="btn btn-primary" id="btn-step3-next" onclick="goStep(4)" disabled>次へ</button>
+    <button class="btn btn-secondary" onclick="goStep(2)">戻る</button>
+  </div>
+</div>
+
+<!-- STEP 4: Q④ おすすめしたい方 -->
+<div class="card step" id="step-4">
+  <div class="step-label">Q 4 / 7</div>
+  <div class="question-title">どんな方におすすめしたいですか？</div>
+  <div class="question-sub">複数選択できます</div>
+  <div class="checkbox-group" id="recommendation-group"></div>
+  <div class="mt-16">
+    <button class="btn btn-primary" id="btn-step4-next" onclick="goStep(5)" disabled>次へ</button>
+    <button class="btn btn-secondary" onclick="goStep(3)">戻る</button>
+  </div>
+</div>
+
+<!-- STEP 5: Q⑤ スタッフ・店内の印象 -->
+<div class="card step" id="step-5">
+  <div class="step-label">Q 5 / 7</div>
+  <div class="question-title">スタッフや店内の印象を<br>教えてください</div>
+  <div class="question-sub">複数選択できます</div>
+  <div class="checkbox-group" id="staff-group"></div>
+  <div class="mt-16">
+    <button class="btn btn-primary" id="btn-step5-next" onclick="goStep(6)" disabled>次へ</button>
+    <button class="btn btn-secondary" onclick="goStep(4)">戻る</button>
+  </div>
+</div>
+
+<!-- STEP 6: Q⑥ 自由コメント -->
+<div class="card step" id="step-6">
+  <div class="step-label">Q 6 / 7</div>
+  <div class="question-title">その他、自由にお書きください</div>
+  <div class="question-sub">任意・空欄でも大丈夫です</div>
+  <textarea id="free-text" placeholder="良かった点・改善してほしい点など、なんでもお聞かせください"></textarea>
+  <div style="font-size:11.5px;color:var(--mid);line-height:1.6;margin-top:8px;">
+    ※ ご回答いただいた内容は、お店のサービス向上のために活用させていただきます。<br>
+    お名前・ご連絡先はお伺いしておりません。
+  </div>
+  <div class="mt-16">
+    <button class="btn btn-primary" onclick="goStep(7)">次へ</button>
+    <button class="btn btn-secondary" onclick="goStep(5)">戻る</button>
+  </div>
+</div>
+
+<!-- STEP 7: Q⑦ テンションの確認 -->
+<div class="card step" id="step-7">
+  <div class="step-label">Q 7 / 7</div>
+  <div class="question-title">クチコミのテンションを<br>選んでください</div>
+  <div class="question-sub">絵文字や記号の量・文章の元気さが変わります。「おまかせ」ならお店の雰囲気に合わせて自然に仕上げます</div>
+  <div class="radio-group" id="tension-group">
+    <div class="radio-btn" onclick="selectTension(1,this)">落ち着いて</div>
+    <div class="radio-btn" onclick="selectTension(2,this)">ひかえめ</div>
+    <div class="radio-btn selected" onclick="selectTension(3,this)">おまかせ</div>
+    <div class="radio-btn" onclick="selectTension(4,this)">明るめ</div>
+    <div class="radio-btn" onclick="selectTension(5,this)">元気に</div>
+  </div>
+  <div class="mt-16">
+    <button class="btn btn-primary" id="btn-generate" onclick="generateReview()">クチコミを作成する</button>
+    <button class="btn btn-secondary" onclick="goStep(6)">戻る</button>
+  </div>
+</div>
+
+<!-- STEP 8: ローディング -->
+<div class="card step" id="step-8">
+  <div class="loading-wrap">
+    <div class="loading-icon">⚡</div>
+    <div class="loading-title">クチコミ文章を作成中です</div>
+    <div class="loading-sub">AIがあなたの体験をまとめています<br>少々お待ちください...</div>
+  </div>
+</div>
+
+<!-- STEP 9: 結果 -->
+<div class="card step" id="step-9">
+  <div class="result-title" id="result-title">✦ クチコミが完成しました</div>
+  <div class="disclaimer" id="result-disclaimer">
+    この文章はお客様の実体験をもとに作成されています。<br>
+    内容に誤りや気になる点がございましたら、<br>
+    投稿前にご自身で修正をお願いいたします。
+  </div>
+  <div class="review-box" id="review-result"></div>
+  <!-- 失敗したときだけ出る案内。下の「この雰囲気で作り直す」へ誘導する -->
+  <div class="retry-hint" id="retry-hint" style="display:none;">
+    お手数ですが、下の <b>「この雰囲気で作り直す」</b> をもう一度押してください。<br>
+    回答した内容はそのまま残っています。
+  </div>
+  <!-- ▼ 生成に失敗したときは、ここから下をまるごと隠す（エラー文の投稿を防ぐため） -->
+  <div id="result-actions">
+  <button class="btn btn-copy" onclick="copyReview()">クチコミをコピーする</button>
+  <div class="copy-success" id="copy-success"></div>
+  <div class="divider"></div>
+  <a id="google-review-link-top" href="#" target="_blank" class="btn btn-google" style="text-decoration:none;text-align:center;display:block;">
+    Googleクチコミへ投稿する
+  </a>
+  <div class="divider"></div>
+  <div class="next-guide">
+    <div class="next-guide-title">このあと、Googleの画面ですること</div>
+    <div class="next-step">
+      <div class="next-num">1</div>
+      <div class="next-body"><b>★をタップ</b>して評価を選びます</div>
+    </div>
+    <div class="next-step">
+      <div class="next-num">2</div>
+      <div class="next-body">入力欄を<b>長押しして「貼り付け」</b><br><span>さきほどコピーした文章がそのまま入ります</span></div>
+    </div>
+    <div class="next-step">
+      <div class="next-num">3</div>
+      <div class="next-body"><b>写真・動画を追加</b>して投稿します<br><span>カメラのマークから選べます</span></div>
+    </div>
+    <div class="next-photo">
+      📸 <b>撮られた写真・動画のアップも大歓迎です！</b><br>
+      写真や動画のついたクチコミは、Googleの検索でもAIのおすすめでも見つけてもらいやすくなります。
+      スマホに残っている1枚で大丈夫です。
+    </div>
+  </div>
+  <a id="google-review-link" href="#" target="_blank" class="btn btn-google" style="text-decoration:none;text-align:center;display:block;">
+    Googleクチコミへ投稿する
+  </a>
+  </div>
+  <!-- ▲ ここまでが「成功したときだけ見せる」範囲 -->
+  <div class="divider"></div>
+  <div style="text-align:center;font-size:12.5px;color:var(--mid);margin-bottom:8px;">雰囲気を変えて作り直せます</div>
+  <div class="radio-group" id="tension-group-result" style="margin-bottom:12px;">
+    <div class="radio-btn" onclick="selectTensionResult(1,this)">落ち着いて</div>
+    <div class="radio-btn" onclick="selectTensionResult(2,this)">ひかえめ</div>
+    <div class="radio-btn" onclick="selectTensionResult(3,this)">おまかせ</div>
+    <div class="radio-btn" onclick="selectTensionResult(4,this)">明るめ</div>
+    <div class="radio-btn" onclick="selectTensionResult(5,this)">元気に</div>
+  </div>
+  <button class="btn btn-outline" onclick="regenerate()">この雰囲気で作り直す</button>
+  <button class="btn btn-secondary" onclick="resetAll()">最初からやりなおす</button>
+</div>
+
+<script src="config.js"></script>
+<script>
+// ===== アクセス数の計測（Googleアナリティクス） =====
+// config.js に gaMeasurementId（G-で始まる測定ID）が設定されている店舗だけ動く。
+// 未設定・書式違いなら何もしない（クチコミ作成には一切影響させない）。
+(function () {
+  try {
+    var gaId = (typeof SALON_CONFIG !== 'undefined' && SALON_CONFIG.gaMeasurementId) || '';
+    if (!/^G-[A-Z0-9]+$/.test(gaId)) return;
+    var s = document.createElement('script');
+    s.async = true;
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=' + gaId;
+    document.head.appendChild(s);
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function () { dataLayer.push(arguments); };
+    gtag('js', new Date());
+    gtag('config', gaId);
+  } catch (e) {}
+})();
+
+const state = {
+  services: [], gender: null, age: null, tension: 3,
+  goodPoints: [], recommendations: [],
+  staffImpressions: [], freeText: ""
+};
+const TOTAL_STEPS = 7;
+
+// ===== アンケート回答の保存 =====
+// 目的：お店が「どんな方が・何に満足したか」を集計レポートで確認できるようにする。
+// 大原則：ここが失敗しても、お客様のクチコミ作成は絶対に止めない（全部握りつぶす）。
+let responseId = null;
+
+function postSave(body) {
+  try {
+    fetch('/api/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      keepalive: true   // Googleへ移動しても送信が途中で切れないように
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (d) { if (d && d.id) responseId = d.id; })
+      .catch(function () {});
+  } catch (e) {}
+}
+
+function saveAnswers() {
+  if (responseId) {
+    // 2回目以降（作り直し）は、回数と雰囲気だけ更新する
+    postSave({ id: responseId, regenerated: true, tension: state.tension });
+    return;
+  }
+  postSave({
+    gender: state.gender,
+    age: state.age,
+    tension: state.tension,
+    services: state.services,
+    goodPoints: state.goodPoints,
+    recommendations: state.recommendations,
+    staffImpressions: state.staffImpressions,
+    freeText: state.freeText
+  });
+}
+
+function markCopied() { if (responseId) postSave({ id: responseId, copied: true }); }
+function markPosted() { if (responseId) postSave({ id: responseId, posted: true }); }
+
+window.addEventListener('DOMContentLoaded', () => {
+  applyConfig();
+  buildServices();
+  buildCheckboxGroup('recommendation-group', SALON_CONFIG.recommendations, 'recommendations', 'btn-step4-next');
+  buildCheckboxGroup('staff-group', SALON_CONFIG.staffImpressions, 'staffImpressions', 'btn-step5-next');
+});
+
+function applyConfig() {
+  document.title = SALON_CONFIG.salonName + " | クチコミ作成";
+  document.getElementById('header-salon-name').textContent = SALON_CONFIG.salonName;
+  document.getElementById('welcome-body').textContent =
+    SALON_CONFIG.welcomeMessage + "\n" + SALON_CONFIG.subMessage;
+  const gLink = document.getElementById('google-review-link');
+  gLink.href = SALON_CONFIG.googleReviewUrl;
+  gLink.addEventListener('click', markPosted);
+  const gLinkTop = document.getElementById('google-review-link-top');
+  if (gLinkTop) {
+    gLinkTop.href = SALON_CONFIG.googleReviewUrl;
+    gLinkTop.addEventListener('click', markPosted);
+  }
+  if (SALON_CONFIG.welcomeIcon) {
+    document.getElementById('welcome-icon').textContent = SALON_CONFIG.welcomeIcon;
+  }
+  if (SALON_CONFIG.backgroundImage) {
+    const bg = document.getElementById('bg-watermark');
+    bg.style.backgroundImage = 'url("' + SALON_CONFIG.backgroundImage + '")';
+    bg.style.opacity = (SALON_CONFIG.backgroundOpacity != null) ? SALON_CONFIG.backgroundOpacity : 0.06;
+    if (SALON_CONFIG.backgroundSize) bg.style.backgroundSize = SALON_CONFIG.backgroundSize;
+    if (SALON_CONFIG.backgroundRepeat) bg.style.backgroundRepeat = SALON_CONFIG.backgroundRepeat;
+  }
+}
+
+function goStep(n) {
+  document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
+  document.getElementById('step-' + n).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  const pw = document.getElementById('progress-wrap');
+  if (n === 0 || n === 8 || n === 9) {
+    pw.style.display = 'none';
+  } else {
+    pw.style.display = 'block';
+    var pct = Math.round((n / TOTAL_STEPS) * 100);
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-count').innerHTML = '質問 <b>' + n + '</b> / ' + TOTAL_STEPS;
+    document.getElementById('progress-percent').textContent = pct + '%';
+  }
+  if (n === 3) buildStep3();
+  if (n === 9) {
+    const t = state.tension || 3;
+    document.querySelectorAll('#tension-group-result .radio-btn').forEach((b, i) => b.classList.toggle('selected', i === t - 1));
+  }
+}
+
+function buildServices() {
+  const g = document.getElementById('service-group');
+  g.innerHTML = '';
+  SALON_CONFIG.services.forEach(s => {
+    const el = document.createElement('div');
+    el.className = 'checkbox-item';
+    el.innerHTML = `<div class="checkbox-box"><span class="check-mark">✓</span></div>${s.label}`;
+    el.addEventListener('click', () => {
+      el.classList.toggle('selected');
+      if (el.classList.contains('selected')) { if (!state.services.includes(s.id)) state.services.push(s.id); }
+      else { state.services = state.services.filter(x => x !== s.id); }
+      document.getElementById('btn-step2-next').disabled = state.services.length === 0;
+    });
+    g.appendChild(el);
+  });
+}
+
+function selectRadio(type, val, el) {
+  const groupId = type === 'gender' ? 'gender-group' : 'age-group';
+  document.querySelectorAll('#' + groupId + ' .radio-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  if (type === 'gender') state.gender = val;
+  else state.age = val;
+  document.getElementById('btn-step1-next').disabled = !(state.gender && state.age);
+}
+
+function selectTension(val, el) {
+  document.querySelectorAll('#tension-group .radio-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  state.tension = val;
+}
+
+function selectTensionResult(val, el) {
+  document.querySelectorAll('#tension-group-result .radio-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  state.tension = val;
+  // Q7側の選択もそろえる
+  document.querySelectorAll('#tension-group .radio-btn').forEach((b, i) => b.classList.toggle('selected', i === val - 1));
+}
+
+function buildStep3() {
+  const g = document.getElementById('good-points-group');
+  g.innerHTML = '';
+  state.goodPoints = [];
+  let options = [];
+  const ids = state.services;
+  if (ids.length === 1) {
+    options = SALON_CONFIG.goodPoints[ids[0]] || [];
+  } else {
+    const allNeg = ids.map(id => (SALON_CONFIG.goodPoints[id] || []).find(x => x.negative)).filter(Boolean);
+    const allPos = ids.flatMap(id => (SALON_CONFIG.goodPoints[id] || []).filter(x => !x.negative).slice(0, 3));
+    const seen = new Set();
+    const unique = allPos.filter(x => { if (seen.has(x.id)) return false; seen.add(x.id); return true; });
+    options = [...unique, allNeg[0]].filter(Boolean);
+  }
+  options.forEach(s => {
+    const el = document.createElement('div');
+    el.className = 'checkbox-item' + (s.negative ? ' negative' : '');
+    el.innerHTML = `<div class="checkbox-box"><span class="check-mark">✓</span></div>${s.label}`;
+    el.addEventListener('click', () => toggleCheck(s.id, el, 'goodPoints', 'btn-step3-next'));
+    g.appendChild(el);
+  });
+  document.getElementById('btn-step3-next').disabled = true;
+}
+
+function buildCheckboxGroup(groupId, items, stateKey, btnId) {
+  const g = document.getElementById(groupId);
+  g.innerHTML = '';
+  items.forEach(s => {
+    const el = document.createElement('div');
+    el.className = 'checkbox-item' + (s.negative ? ' negative' : '');
+    el.innerHTML = `<div class="checkbox-box"><span class="check-mark">✓</span></div>${s.label}`;
+    el.addEventListener('click', () => toggleCheck(s.id, el, stateKey, btnId));
+    g.appendChild(el);
+  });
+}
+
+function toggleCheck(id, el, stateKey, btnId) {
+  el.classList.toggle('selected');
+  if (el.classList.contains('selected')) { if (!state[stateKey].includes(id)) state[stateKey].push(id); }
+  else { state[stateKey] = state[stateKey].filter(x => x !== id); }
+  document.getElementById(btnId).disabled = state[stateKey].length === 0;
+}
+
+// v1.2：生成に成功したかどうか。失敗中は true にならない。
+// これが false のあいだは、コピー・投稿ボタンを隠し、copyReview() も動かない。
+// （エラー文がそのままGoogleクチコミに投稿されてしまうのを防ぐため）
+var reviewReady = false;
+
+function showResult(text) {
+  reviewReady = true;
+  document.getElementById('review-result').textContent = text;
+  document.getElementById('review-result').classList.remove('is-error');
+  document.getElementById('result-title').textContent = '✦ クチコミが完成しました';
+  document.getElementById('result-disclaimer').style.display = '';
+  document.getElementById('retry-hint').style.display = 'none';
+  document.getElementById('result-actions').style.display = '';
+  document.getElementById('copy-success').textContent = '';
+}
+
+function showResultError(message) {
+  reviewReady = false;
+  document.getElementById('review-result').textContent = message;
+  document.getElementById('review-result').classList.add('is-error');
+  document.getElementById('result-title').textContent = '✦ うまく作れませんでした';
+  document.getElementById('result-disclaimer').style.display = 'none';
+  document.getElementById('retry-hint').style.display = '';
+  document.getElementById('result-actions').style.display = 'none';   // ← コピー・投稿ボタンを隠す
+  document.getElementById('copy-success').textContent = '';
+}
+
+async function generateReview() {
+  state.freeText = document.getElementById('free-text').value.trim();
+  goStep(8);
+  try {
+    const res = await fetch('/api/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ system: buildSystemPrompt(), messages: [{ role: 'user', content: buildPrompt() }] })
+    });
+    const data = await res.json();
+    const text = data.content && data.content[0] && data.content[0].text;
+    if (text) showResult(text);
+    else showResultError('文章を作れませんでした。もう一度お試しください。');
+    saveAnswers();
+    goStep(9);
+  } catch (e) {
+    showResultError('通信エラーが発生しました。もう一度お試しください。');
+    goStep(9);
+  }
+}
+
+// ===== 人間化エンジン v4（実在クチコミ711件の分析準拠・形だけ学習） =====
+// 考え方：スキルが持つのは「形（口調・文章・改行・絵文字・記号）」だけ。
+// クチコミの「中身（体験・エピソード・数字）」は、お客様のアンケート回答と
+// 自由メッセージからだけ作る。AIが体験を勝手に創作しない（＝作られた感の根絶）。
+//
+// ユーザー確定方針：
+// ・口調は必ずですます調（常体・体言止めは混ぜない）
+// ・誤字は入れない／小さな不満・超短文・言いさしの締めは入れない（前向きに閉じる・下限150字目安）
+// ・体験/きっかけ/同行者/数字などを勝手に作らない。自由メッセージにあればそれを活かす
+// ・研究から学ぶのは形：業種ごとのトーン・絵文字/記号の使い方・改行の癖・長さや書き出し/締めのばらつき
+// ・地名は勝手に創作しない（各店のmeoKeywordにある地名だけ）
+//
+// review.html の buildSystemPrompt() を置き換える形で使う。
+// グローバルの state（アンケート回答）と SALON_CONFIG（店舗設定）を参照する。
+
+function hPick(a){return a[Math.floor(Math.random()*a.length)];}
+function hPickW(items){var t=items.reduce(function(s,x){return s+x.w;},0);var r=Math.random()*t;for(var i=0;i<items.length;i++){r-=items[i].w;if(r<0)return items[i];}return items[items.length-1];}
+
+// 業種プロファイル（SALON_CONFIG.businessType のキーワードで判定）
+// 中身の例文は持たない。持つのは「形」＝トーン・絵文字/記号の使い方だけ。
+var HUMANIZE_PROFILES = [
+  // tone=業種の口調。palette=この業種で使う顔文字・記号（テンションが高い時の見本）。
+  // emoji=テンション「おまかせ(3)」のときの自然な量（実データ準拠）の抽選。
+  { key:/ポーカー|アミューズメント|ゲームカフェ|ボードゲーム|娯楽|ダーツ|ビリヤード|アミューズ/, name:'娯楽・アミューズメント',
+    tone:'ですます調のフランクな丁寧語。硬すぎず、気取らない。友達に近況を話すくらいの温度',
+    palette:'◎ ☆ (^_-) ♬ (笑)',
+    emoji:[{w:62,r:'絵文字・記号は使わない'},{w:23,r:'「◎」「☆」「(^_-)」「♬」「(笑)」などの記号・顔文字を文末に1〜2個だけ'},{w:15,r:'気分が乗った所で「！」を2〜3回。絵文字は基本なし'}] },
+  { key:/飲食|レストラン|居酒屋|カフェ|喫茶|バー|ﾊﾞｰ|bar|スナック|ラウンジ|クラブ|ダイニング|食堂|ラーメン|グルメ|焼肉|寿司|そば|うどん|中華|イタリアン|フレンチ|ビストロ|定食|ランチ|ディナー|パブ|酒場/i, name:'飲食・バー・スナック',
+    tone:'ですます調のフランクで気さくな丁寧語。常連が近況を話すくらいの温度。おいしさ・居心地・雰囲気を素直に。バー/スナックは常連ならではのくだけた温かさ',
+    palette:'(≧∇≦) ♡ 🎵 (^^) (笑)',
+    emoji:[{w:50,r:'絵文字・記号は使わない'},{w:28,r:'「♡」「🎵」「(^^)」「(笑)」などを1〜2個、自然な位置に'},{w:22,r:'「(≧∇≦)」「♡」「🎵」や顔文字を2〜3個、気分が乗った感じで使ってもよい'}] },
+  { key:/美容|エステ|ネイル|まつ|脱毛|サロン|ヘア|髪|リラク/, name:'美容・サロン',
+    tone:'ですます調で明るめ。うれしさが素直に出る感じ',
+    palette:'💕 💖 😍 🎵 ✨ (^^) (*^_^*)',
+    emoji:[{w:48,r:'絵文字・記号は使わない'},{w:30,r:'「💕」「🎵」「(^^)」「(*^_^*)」などを1〜2個、自然な位置に'},{w:22,r:'「💕」「💖」「😍」「🎵」や顔文字を2〜3個、単語を挟むように使ってもよい'}] },
+  { key:/ジム|トレーニング|フィットネス|整体|接骨|治療|鍼|パーソナル|ボディ/, name:'ジム・整体',
+    tone:'ですます調で落ち着いた感謝ベース。淡々としつつ前向き',
+    palette:'(^^) ‼️ ✨',
+    emoji:[{w:68,r:'絵文字・記号は使わない'},{w:22,r:'顔文字を1個だけ（「(^^)」など）、または「！」を1〜2回'},{w:10,r:'「(^^)」か「‼️」を1個だけ'}] },
+  { key:/住宅|工務店|不動産|家づくり|相談|保険|士業|リフォーム|新築|注文|建築|建設|ハウス|住まい|設計事務所/, name:'住宅・相談',
+    tone:'ですます調で真面目・落ち着いた大人。高額な決断ゆえ、情緒的な言葉より落ち着いた語り',
+    palette:'（記号は控えめ）',
+    emoji:[{w:88,r:'絵文字・記号は使わない'},{w:12,r:'「！」を1回だけ、絵文字はなし'}] },
+];
+var HUMANIZE_DEFAULT = { name:'一般', tone:'ですます調で自然・素朴', palette:'(^^) ☆ ✨',
+  emoji:[{w:70,r:'絵文字・記号は使わない'},{w:30,r:'顔文字（(^^)など）を1個だけ'}] };
+
+function humanizeProfile(bt){ for(var i=0;i<HUMANIZE_PROFILES.length;i++){ if(HUMANIZE_PROFILES[i].key.test(bt||'')) return HUMANIZE_PROFILES[i]; } return HUMANIZE_DEFAULT; }
+
+// テンションメーター(1〜5)で絵文字・記号の量を決める。入力者が選ぶ。既定は3（おまかせ＝業種の自然な量）。
+// gender='male' のときは、♡💕💖😍🎵などの可愛い系・女性的な絵文字を避け、😊✨や(^^)☆◎‼️など中性的なものに限定する。
+var MALE_NO_EMOJI = '♡💕💖😍🎵などの可愛い系・女性的な絵文字は使わず、😊 ✨ (^^) ☆ ◎ ‼️ などの中性的な絵文字・記号だけにする';
+function humanizeEmojiByTension(prof, tension, gender){
+  var male = (gender === 'male');
+  if (tension <= 1) return '絵文字・記号は一切使わない。「！」も使わず、淡々とした落ち着いた文章にする';
+  if (tension === 2) return '絵文字・記号はほぼ使わない（使っても文末に控えめな記号を1個まで）。「！」も多くて1回';
+  if (tension === 3){
+    var r = hPickW(prof.emoji).r;
+    return male ? r + '（ただし' + MALE_NO_EMOJI + '）' : r;
+  }
+  if (tension === 4){
+    return male
+      ? '😊 ✨ (^^) ☆ ◎ ‼️ などの中性的な絵文字・記号を2〜3個、明るめに使う。「！」も1〜3回。' + MALE_NO_EMOJI
+      : 'この業種に合う絵文字・記号（' + prof.palette + '）や 😊 🎵 ✨ などを2〜4個、明るめに使う。「！」も1〜3回。楽しさが伝わる感じに';
+  }
+  return male
+    ? '😊 ✨ (^^) ☆ ◎ ‼️ などの中性的な絵文字・記号を3〜5個たっぷり使い、「！」も多めに。とても元気で明るいテンションにする。' + MALE_NO_EMOJI
+    : 'この業種に合う絵文字・記号（' + prof.palette + '）や 😊 😍 🎵 💕 ✨ などの明るい絵文字を3〜6個たっぷり使う。「！」も多めに。とても元気で明るいテンションにする';
+}
+
+// 書き出しの型：作り話ではなく「実際の回答/メッセージのどこから書くか」の順番だけを変える
+var HUMANIZE_OPENINGS = [
+  '全体の感想（満足度やおすすめ度）を一言先に言ってから、良かった点を書く',
+  '一番よかったと思う点から書き始める',
+  '利用したサービス・内容から書き始める',
+  '対応してくれた人やお店の雰囲気の印象から書き始める',
+];
+var HUMANIZE_OPENINGS_FREE = '自由メッセージにお客様自身の話があるので、その内容から自然に書き始める';
+
+var HUMANIZE_CLOSINGS = [
+  'ひとことお礼で締める',
+  '「また行きたい」「また来ます」を、さらっと軽く言って締める（大げさな再訪宣言にはしない）',
+  'これからの予定や期待をひとこと添えて締める',
+  '良かった点の感想をもう一度そっと置いて、あっさり締める',
+];
+
+// 改行の癖（研究で学ぶ形の一つ）
+var HUMANIZE_BREAKS = [
+  { w:45, r:'改行はせず、ひとつながりの文章にする' },
+  { w:35, r:'話の切れ目で1回だけ改行して、2つのまとまりに分ける' },
+  { w:20, r:'2〜3文ごとに軽く改行して、スマホで打ったような見た目にする' },
+];
+
+function humanizeDrawPersona(){
+  var prof = humanizeProfile(SALON_CONFIG.businessType);
+  var hasFree = !!(state.freeText && state.freeText.trim().length >= 6);
+  var tension = (typeof state.tension === 'number') ? state.tension : 3; // 入力者が選ぶ絵文字テンション(1〜5)。既定3
+  var lengthBands = [{w:40,r:'150〜200文字'},{w:40,r:'200〜260文字'},{w:20,r:'260〜320文字'}];
+  return {
+    prof: prof,
+    opening: hasFree && Math.random() < 0.6 ? HUMANIZE_OPENINGS_FREE : hPick(HUMANIZE_OPENINGS),
+    closing: hPick(HUMANIZE_CLOSINGS),
+    length: hPickW(lengthBands).r,
+    emoji: humanizeEmojiByTension(prof, tension, state.gender),
+    brk: hPickW(HUMANIZE_BREAKS).r,
+    hasFree: hasFree,
+  };
+}
+
+function buildSystemPrompt(){
+  var p = humanizeDrawPersona();
+  var prof = p.prof;
+  var genderText = ({female:'女性',male:'男性',other:'性別未回答'})[state.gender] || '性別未回答';
+  var ageText = ({'10s':'10代以下','20s':'20代','30s':'30代','40s':'40代','50s':'50代','60s':'60代以上'})[state.age] || '';
+  // 店舗独自ワードの抑制。基本は全て禁止（店により有無が違い宣伝文＝AI感になるため）。
+  // 例外は SALON_CONFIG.promoteTerms に明示的に入れた語だけ（＝新規作成時にユーザーが「載せてよい」と
+  // 案件ごとに承認した店舗独自ワード）。promoteTerms が無い/空なら、店舗独自ワードは全て抑制。
+  var defaultBanned = ['回数券','ポイント制','完全個室','個室','月額会員','定額制','会員制','サブスク'];
+  var promote = (SALON_CONFIG.promoteTerms || []);
+  var banned = defaultBanned.filter(function(w){ return !promote.some(function(k){ return k.indexOf(w) >= 0 || w.indexOf(k) >= 0; }); });
+  // この店だけで追加で禁止したい言葉（例：アミューズメントポーカーの「現金」「賭け」など、誤解を招く語）
+  var suppress = (SALON_CONFIG.suppressTerms || []);
+  for (var si = 0; si < suppress.length; si++) { if (banned.indexOf(suppress[si]) < 0) banned.push(suppress[si]); }
+  var moneyBan = suppress.some(function(w){ return w.indexOf('現金') >= 0 || w.indexOf('賭') >= 0 || w.indexOf('お金') >= 0; });
+  // MEOキーワードから、禁止対象になっている店舗独自ワードは除いて提示する（承認済みのものだけ残る）
+  var kws = (SALON_CONFIG.meoKeywords || []).filter(function(k){ return !banned.some(function(b){ return k.indexOf(b) >= 0 || b.indexOf(k) >= 0; }); });
+  var kwLine = kws.length
+    ? '地名やサービスの呼び方、この店ならではの言葉に触れるなら、次の言葉だけを自然に使ってよい（無理に入れない・全部は入れない・1〜2個で十分）：' + kws.join('、')
+    : '店名以外の地名（駅名・市区名など）は文章に登場させない';
+  var bannedLine = banned.length
+    ? '・【禁止ワード】次の単語は本文に一文字も書かない：' + banned.map(function(w){return '「'+w+'」';}).join('') + '。これらの仕組み・設備・言葉の"名前そのもの"は出さず、そこから得られた良さだけを一般的な言葉で書く（例：「回数券に期限がない」→「自分のペースで続けられる」）'
+      + (moneyBan ? '。特に、お金・現金・賭け・課金・決済に関わる話題には一切触れず、「気負わず楽しめた」「安心して遊べた」のように書く' : '')
+    : '';
+  var checkWords = banned.length ? banned.map(function(w){return '「'+w+'」';}).join('') + 'や、' : '';
+  var freeRule = p.hasFree
+    ? '・自由メッセージにお客様本人の体験・エピソード・具体的な話が書かれている。これを中心にして、お客様の言葉づかいをできるだけ活かして自然にふくらませる。ただしメッセージに書かれていない場所・きっかけ・同行者・数字を付け足さない（内容の範囲でふくらませる）'
+    : '・自由メッセージは空なので、選ばれた項目（利用したサービス・良かった点・変化・印象）についての感想だけを自然な文章にする。来店のきっかけ・理由・シチュエーション（「仕事帰りに」「友達と」「出張で」など）は書かない。無理に長くしたり、話を作って埋めたりしない';
+
+  return 'あなたは、実在するお客さんになりきってGoogleクチコミを書く人です。宣伝文や「お客様の声」ではなく、その辺の普通の人がスマホでサッと書いた本物のクチコミを作ります。\n\n'
+    + '【お店】' + SALON_CONFIG.salonName + '（' + SALON_CONFIG.businessType + '）\n'
+    + '【書き手】' + genderText + '・' + ageText + '\n\n'
+    + '【中身のルール（最重要・ここを外すと嘘のクチコミになる）】\n'
+    + '・クチコミの"中身"は、お客様が実際に選んだ回答と、自由メッセージに書いた内容だけから作る\n'
+    + freeRule + '\n'
+    + '・お客様が書いていない出来事・きっかけ・同行者・数字・エピソードを勝手に作らない（例：「友達に誘われて」「息子と来た」「2ヶ月で3kg」などをでっち上げない）\n'
+    + '・お店からの補足にある"お店の事実"や想定客層（出張・親子・仕事帰りなど）を、あなた自身の来店理由・シチュエーションとして勝手に採用しない\n'
+    + '・【法律・コンプライアンス上の禁止】子ども・お子様・親子・子連れ・お孫さんなどに触れる場合は、お酒・飲酒・アルコール・「飲みながら」「一杯」などを同じクチコミに絶対に一緒に登場させない（逆に、お酒の話を書くなら子どもの話は出さない）\n'
+    + '・アンケートの選択肢の言葉をそのまま並べず、自分の言葉で自然に言い換える\n'
+    + '・回数券・ポイント制・月額会員・定額・完全個室などの、その店ならではの仕組み・制度・料金プラン・設備は、名前や仕組みを本文に書かない（店によって有無が違い、宣伝文のように見えるため）。選んだ回答やお店の補足にそういう仕組みが出てきても、そこから得られた"良さ・感覚"だけを一般的な言葉で表す（例：「回数券に期限がなく通えた」→「自分のペースで無理なく続けられた」、「現金を賭けないポイント制」→「安心して楽しめた」、「完全個室」→「周りを気にせず過ごせた」）\n\n'
+    + '【形のルール（毎回変えています。ここが本物らしさを作る）】\n'
+    + '・口調：' + prof.tone + '。必ず「です・ます」で書き、常体（〜だった）やタメ口にはしない\n'
+    + '・書き出し：' + p.opening + '\n'
+    + '・締め方：' + p.closing + '\n'
+    + '・長さ：' + p.length + '（前後してよいが、150文字を大きく下回らない）\n'
+    + '・絵文字/記号：' + p.emoji + '\n'
+    + '・改行：' + p.brk + '\n'
+    + '・褒めどころは1〜2点にしぼる。あれもこれも全部褒めない\n'
+    + '・「スタッフの方」を連発しない。「担当してくれた人」など具体的に呼ぶか、主語を省く\n'
+    + '・' + kwLine + '\n'
+    + '・お客様が選んだ回答に、上のキーワード（この店が大切にしている言葉・売りにしている特徴）がそのまま入っている場合は、言い換えずにその言葉を活かして書いてよい（お店がGoogleクチコミに載せたいMEOワードのため）\n'
+    + '・地名・都市名・県名・駅名は、自由メッセージかお店のキーワードに実際に出てくるものだけ使う。それ以外の地名（札幌・東京・大阪など）は、出張・旅行などの設定であっても一切書かない\n'
+    + '・毎回同じ締め方（「ありがとうございました」で終わる等）や、同じ言い回し（「良い刺激」「新しい趣味ができた」など）にばかり頼らない。締めも言い回しも自然にばらけさせる\n'
+    + '・誤字や乱れた文にはしない。ただし、きれいに整いすぎた作文にもしない\n\n'
+    + '【絶対に使わない言い回し（AIっぽさの元凶）】\n'
+    + '・「〜してくださって」「〜させていただき」を何度も重ねる多重敬語\n'
+    + '・「また利用させていただきます」「また訪れたいと思います」のような丁寧すぎる再訪宣言\n'
+    + '・「癒しの空間」「特別なひととき」「心温まる」「アットホームな雰囲気」などの抽象的な情緒ワード\n'
+    + '・「料理も接客も雰囲気も全て最高」のような三点全部褒め\n'
+    + '・「初心者の私でも」「〜な私でも」の定型\n'
+    + '・「ぜひおすすめです」「気になる方はぜひ」の読者への呼びかけ\n'
+    + (bannedLine ? bannedLine + '\n\n' : '\n')
+    + '【お店の補足（業種と雰囲気を理解するためだけに読む。ここに書かれた店舗独自の仕組み・料金・設備・制度は、クチコミ本文にそのまま書かない）】\n'
+    + SALON_CONFIG.promptNote + '\n\n'
+    + 'クチコミ本文だけを出力（前置き・説明・タイトルは不要）。\n'
+    + '【出力前の最終チェック】次が本文に入っていたら、必ず直してから出す：'
+    + (checkWords ? '(1)' + checkWords.replace(/や、$/, '') + '→仕組みの名前は出さず、感じた良さを一般的な言葉に言い換える（削除でも可）。' : '')
+    + '(2)「また利用させていただきます」「また訪れたいと思います」「初心者の私でも」「〜な私でも」「アットホーム」「癒しの空間」「特別なひととき」などのAI定型句→自分の言葉に言い換える。';
+}
+// ===== 人間化エンジン ここまで =====
+
+function buildPrompt() {
+  const getLabels = (ids, source) => ids.map(id => { const f = source.find(x => x.id === id); return f ? f.label : id; });
+  const allGood = Object.values(SALON_CONFIG.goodPoints).flat();
+  const serviceLabels = state.services.map(id => { const s = SALON_CONFIG.services.find(x => x.id === id); return s ? s.label : id; });
+  // 中立ネガ（「思い浮かばなかった」系＝具体的な不満の中身がない選択肢）はAIに渡さない。
+  // 渡すと「ネガあり」なのに書く材料がなく、AIが料金等の不満を創作する（2026-08-16にSOで実発生）
+  const allOpts = allGood.concat(SALON_CONFIG.recommendations, SALON_CONFIG.staffImpressions);
+  const isNeutralNegId = id => { const f = allOpts.find(x => x.id === id); return !!(f && f.negative && /思い浮かば/.test(f.label)); };
+  const goodLabels = getLabels(state.goodPoints.filter(id => !isNeutralNegId(id)), allGood);
+  const recLabels = getLabels(state.recommendations.filter(id => !isNeutralNegId(id)), SALON_CONFIG.recommendations);
+  const staffLabels = getLabels(state.staffImpressions.filter(id => !isNeutralNegId(id)), SALON_CONFIG.staffImpressions);
+  const hasNeg = [...state.goodPoints, ...state.recommendations, ...state.staffImpressions]
+    .filter(id => !isNeutralNegId(id))
+    .some(id => allOpts.find(x => x.id === id)?.negative);
+  const genderText = { female: '女性', male: '男性', other: '未回答' }[state.gender] || '未回答';
+  const ageText = { '10s': '10代以下', '20s': '20代', '30s': '30代', '40s': '40代', '50s': '50代', '60s': '60代以上' }[state.age] || '';
+
+  return `以下の情報をもとに、${SALON_CONFIG.salonName}のGoogleクチコミ文章を作成してください。
+
+【店舗名】${SALON_CONFIG.salonName}
+【利用したサービス】${serviceLabels.join('・')}
+【性別】${genderText}
+【年代】${ageText}
+【良かった点】${goodLabels.join('、') || 'なし'}
+【おすすめしたい方】${recLabels.join('、') || 'なし（おすすめの文は書かない）'}
+※【おすすめしたい方】は「こんな人にも合いそう」という他人へのおすすめであり、あなた自身の来店理由・同行者・シチュエーションではない。自分の体験談に変換しないこと。
+【スタッフ・お店の印象】${staffLabels.join('、') || 'なし'}
+【自由記述】${state.freeText || 'なし'}
+【ネガティブ要素の有無】${hasNeg ? 'あり（全体的に満足したという自然なフォローを添えること）' : 'なし'}
+
+上記の情報を自然な会話文にまとめ、実際の体験として書いてください。`;
+}
+
+function copyReview() {
+  // v1.2：生成に失敗しているあいだは絶対にコピーさせない（エラー文の投稿防止）
+  if (!reviewReady) return;
+  const text = document.getElementById('review-result').textContent;
+  markCopied();
+  navigator.clipboard.writeText(text).then(() => {
+    document.getElementById('copy-success').textContent = '✓ コピーしました！Googleクチコミに貼り付けてください。';
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    document.getElementById('copy-success').textContent = '✓ コピーしました！';
+  });
+}
+
+function regenerate() { generateReview(); }
+
+function resetAll() {
+  Object.assign(state, { services: [], gender: null, age: null, tension: 3, goodPoints: [], recommendations: [], staffImpressions: [], freeText: "" });
+  responseId = null;
+  document.querySelectorAll('.checkbox-item').forEach(el => el.classList.remove('selected'));
+  document.querySelectorAll('.radio-btn').forEach(el => el.classList.remove('selected'));
+  const tMid = document.querySelectorAll('#tension-group .radio-btn')[2];
+  if (tMid) tMid.classList.add('selected');
+  document.getElementById('free-text').value = '';
+  document.getElementById('btn-step1-next').disabled = true;
+  document.getElementById('btn-step2-next').disabled = true;
+  goStep(0);
+}
+</script>
+</body>
+</html>
