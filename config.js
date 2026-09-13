@@ -190,7 +190,6 @@ const SALON_CONFIG = {
   staffImpressions: [
     { id: "s1", label: "個室で、まわりを気にせず過ごせた" },
     { id: "s2", label: "貸切にしてもらえて助かった" },
-    { id: "s3", label: "駐車場が広くて停めやすかった" },
     { id: "s4", label: "接客が落ち着いていて丁寧だった" },
     { id: "s5", label: "中庭や器など、和の設えがきれいだった" },
     { id: "s6", label: "相談したことに、細かく対応してもらえた" },
