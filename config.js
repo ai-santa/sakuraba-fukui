@@ -67,8 +67,8 @@ const SALON_CONFIG = {
   // Q① 何で櫻庭を利用したか（利用シーン・複数選択可）
   // ─────────────────────────────
   services: [
-    { id: "lunch",     label: "【一般】お昼のお食事（そば・セット・コース）" },
-    { id: "dinner",    label: "【一般】夜のお食事・地酒" },
+    { id: "lunch",     label: "お昼のお食事" },
+    { id: "dinner",    label: "夜のお食事" },
     { id: "okuizome",  label: "お食い初め・お子さまのお祝い" },
     { id: "kaoawase",  label: "顔合わせ・ご結納" },
     { id: "houji",     label: "ご法要・偲ぶ会" },
