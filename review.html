@@ -490,7 +490,7 @@
 
 <!-- STEP 1: Q① ペルソナ（性別・年代） -->
 <div class="card step" id="step-1">
-  <div class="step-label">Q 1 / 7</div>
+  <div class="step-label">Q 1 / 8</div>
   <div class="question-title">性別と年代を教えてください</div>
   <div class="question-sub">クチコミの文体に反映されます</div>
   <div class="gender-age-wrap">
@@ -522,7 +522,7 @@
 
 <!-- STEP 2: Q② 利用サービス -->
 <div class="card step" id="step-2">
-  <div class="step-label">Q 2 / 7</div>
+  <div class="step-label">Q 2 / 8</div>
   <!-- 🔴 この店だけの例外（2026-09-12 ようすけさん決定）：Q②はメニューではなく【利用シーン】を聞くため、
        テンプレの「ご利用いただいた商品・サービスを教えてください」から文言を変更している。
        一括更新のときにテンプレで上書きしないこと（02_店舗\CLAUDE.md の例外表に記載あり） -->
@@ -537,7 +537,7 @@
 
 <!-- STEP 3: Q③ 良かった点 -->
 <div class="card step" id="step-3">
-  <div class="step-label">Q 3 / 7</div>
+  <div class="step-label">Q 3 / 8</div>
   <div class="question-title">良かった点を<br>教えてください</div>
   <div class="question-sub">複数選択できます</div>
   <div class="checkbox-group" id="good-points-group"></div>
@@ -549,7 +549,7 @@
 
 <!-- STEP 4: Q④ おすすめしたい方 -->
 <div class="card step" id="step-4">
-  <div class="step-label">Q 4 / 7</div>
+  <div class="step-label">Q 4 / 8</div>
   <div class="question-title">どんな方におすすめしたいですか？</div>
   <div class="question-sub">複数選択できます</div>
   <div class="checkbox-group" id="recommendation-group"></div>
@@ -561,7 +561,7 @@
 
 <!-- STEP 5: Q⑤ スタッフ・店内の印象 -->
 <div class="card step" id="step-5">
-  <div class="step-label">Q 5 / 7</div>
+  <div class="step-label">Q 5 / 8</div>
   <div class="question-title">スタッフや店内の印象を<br>教えてください</div>
   <div class="question-sub">複数選択できます</div>
   <div class="checkbox-group" id="staff-group"></div>
@@ -571,9 +571,23 @@
   </div>
 </div>
 
-<!-- STEP 6: Q⑥ 自由コメント -->
+<!-- STEP 6: Q⑥ 召し上がったもの（🔴 この店だけの追加質問・2026-09-13 ようすけさん決定）
+     テンプレートの追加質問枠（venuePoints）を使っている。選択肢は config.js の venuePoints。
+     目的＝お蕎麦などを「食べていない人のクチコミに書かない」ため。一括更新で7問に戻さないこと -->
 <div class="card step" id="step-6">
-  <div class="step-label">Q 6 / 7</div>
+  <div class="step-label">Q 6 / 8</div>
+  <div class="question-title">召し上がったものを<br>教えてください</div>
+  <div class="question-sub">複数選択できます</div>
+  <div class="checkbox-group" id="venue-group"></div>
+  <div class="mt-16">
+    <button class="btn btn-primary" id="btn-step6-next" onclick="goStep(7)" disabled>次へ</button>
+    <button class="btn btn-secondary" onclick="goStep(5)">戻る</button>
+  </div>
+</div>
+
+<!-- STEP 7: Q⑦ 自由コメント -->
+<div class="card step" id="step-7">
+  <div class="step-label">Q 7 / 8</div>
   <div class="question-title">その他、自由にお書きください</div>
   <div class="question-sub">任意・空欄でも大丈夫です</div>
   <textarea id="free-text" placeholder="良かった点・改善してほしい点など、なんでもお聞かせください"></textarea>
@@ -582,14 +596,14 @@
     お名前・ご連絡先はお伺いしておりません。
   </div>
   <div class="mt-16">
-    <button class="btn btn-primary" onclick="goStep(7)">次へ</button>
-    <button class="btn btn-secondary" onclick="goStep(5)">戻る</button>
+    <button class="btn btn-primary" onclick="goStep(8)">次へ</button>
+    <button class="btn btn-secondary" onclick="goStep(6)">戻る</button>
   </div>
 </div>
 
-<!-- STEP 7: Q⑦ テンションの確認 -->
-<div class="card step" id="step-7">
-  <div class="step-label">Q 7 / 7</div>
+<!-- STEP 8: Q⑧ テンションの確認 -->
+<div class="card step" id="step-8">
+  <div class="step-label">Q 8 / 8</div>
   <div class="question-title">クチコミのテンションを<br>選んでください</div>
   <div class="question-sub">絵文字や記号の量・文章の元気さが変わります。「おまかせ」ならお店の雰囲気に合わせて自然に仕上げます</div>
   <div class="radio-group" id="tension-group">
@@ -601,12 +615,12 @@
   </div>
   <div class="mt-16">
     <button class="btn btn-primary" id="btn-generate" onclick="generateReview()">クチコミを作成する</button>
-    <button class="btn btn-secondary" onclick="goStep(6)">戻る</button>
+    <button class="btn btn-secondary" onclick="goStep(7)">戻る</button>
   </div>
 </div>
 
-<!-- STEP 8: ローディング -->
-<div class="card step" id="step-8">
+<!-- STEP 9: ローディング -->
+<div class="card step" id="step-9">
   <div class="loading-wrap">
     <div class="loading-icon">⚡</div>
     <div class="loading-title">クチコミ文章を作成中です</div>
@@ -614,8 +628,8 @@
   </div>
 </div>
 
-<!-- STEP 9: 結果 -->
-<div class="card step" id="step-9">
+<!-- STEP 10: 結果 -->
+<div class="card step" id="step-10">
   <div class="result-title" id="result-title">✦ クチコミが完成しました</div>
   <div class="disclaimer" id="result-disclaimer">
     この文章はお客様の実体験をもとに作成されています。<br>
@@ -698,9 +712,9 @@
 const state = {
   services: [], gender: null, age: null, tension: 3,
   goodPoints: [], recommendations: [],
-  staffImpressions: [], freeText: ""
+  staffImpressions: [], venuePoints: [], freeText: ""
 };
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS = 8;
 
 // ===== アンケート回答の保存 =====
 // 目的：お店が「どんな方が・何に満足したか」を集計レポートで確認できるようにする。
@@ -735,6 +749,7 @@ function saveAnswers() {
     goodPoints: state.goodPoints,
     recommendations: state.recommendations,
     staffImpressions: state.staffImpressions,
+    venuePoints: state.venuePoints,
     freeText: state.freeText
   });
 }
@@ -747,6 +762,7 @@ window.addEventListener('DOMContentLoaded', () => {
   buildServices();
   buildCheckboxGroup('recommendation-group', SALON_CONFIG.recommendations, 'recommendations', 'btn-step4-next');
   buildCheckboxGroup('staff-group', SALON_CONFIG.staffImpressions, 'staffImpressions', 'btn-step5-next');
+  buildCheckboxGroup('venue-group', SALON_CONFIG.venuePoints || [], 'venuePoints', 'btn-step6-next');
 });
 
 function applyConfig() {
@@ -779,7 +795,7 @@ function goStep(n) {
   document.getElementById('step-' + n).classList.add('active');
   window.scrollTo({ top: 0, behavior: 'smooth' });
   const pw = document.getElementById('progress-wrap');
-  if (n === 0 || n === 8 || n === 9) {
+  if (n === 0 || n === 9 || n === 10) {
     pw.style.display = 'none';
   } else {
     pw.style.display = 'block';
@@ -789,7 +805,7 @@ function goStep(n) {
     document.getElementById('progress-percent').textContent = pct + '%';
   }
   if (n === 3) buildStep3();
-  if (n === 9) {
+  if (n === 10) {
     const t = state.tension || 3;
     document.querySelectorAll('#tension-group-result .radio-btn').forEach((b, i) => b.classList.toggle('selected', i === t - 1));
   }
@@ -908,7 +924,7 @@ function showResultError(message) {
 
 async function generateReview() {
   state.freeText = document.getElementById('free-text').value.trim();
-  goStep(8);
+  goStep(9);
   try {
     const res = await fetch('/api/claude', {
       method: 'POST',
@@ -920,10 +936,10 @@ async function generateReview() {
     if (text) showResult(text);
     else showResultError('文章を作れませんでした。もう一度お試しください。');
     saveAnswers();
-    goStep(9);
+    goStep(10);
   } catch (e) {
     showResultError('通信エラーが発生しました。もう一度お試しください。');
-    goStep(9);
+    goStep(10);
   }
 }
 
@@ -1118,6 +1134,7 @@ function buildPrompt() {
   const goodLabels = getLabels(state.goodPoints.filter(id => !isNeutralNegId(id)), allGood);
   const recLabels = getLabels(state.recommendations.filter(id => !isNeutralNegId(id)), SALON_CONFIG.recommendations);
   const staffLabels = getLabels(state.staffImpressions.filter(id => !isNeutralNegId(id)), SALON_CONFIG.staffImpressions);
+  const venueLabels = getLabels(state.venuePoints || [], SALON_CONFIG.venuePoints || []);
   const hasNeg = [...state.goodPoints, ...state.recommendations, ...state.staffImpressions]
     .filter(id => !isNeutralNegId(id))
     .some(id => allOpts.find(x => x.id === id)?.negative);
@@ -1134,6 +1151,7 @@ function buildPrompt() {
 【おすすめしたい方】${recLabels.join('、') || 'なし（おすすめの文は書かない）'}
 ※【おすすめしたい方】は「こんな人にも合いそう」という他人へのおすすめであり、あなた自身の来店理由・同行者・シチュエーションではない。自分の体験談に変換しないこと。
 【スタッフ・お店の印象】${staffLabels.join('、') || 'なし'}
+【召し上がったもの】${venueLabels.join('、') || 'なし'}
 【自由記述】${state.freeText || 'なし'}
 【ネガティブ要素の有無】${hasNeg ? 'あり（全体的に満足したという自然なフォローを添えること）' : 'なし'}
 
@@ -1157,7 +1175,7 @@ function copyReview() {
 function regenerate() { generateReview(); }
 
 function resetAll() {
-  Object.assign(state, { services: [], gender: null, age: null, tension: 3, goodPoints: [], recommendations: [], staffImpressions: [], freeText: "" });
+  Object.assign(state, { services: [], gender: null, age: null, tension: 3, goodPoints: [], recommendations: [], staffImpressions: [], venuePoints: [], freeText: "" });
   responseId = null;
   document.querySelectorAll('.checkbox-item').forEach(el => el.classList.remove('selected'));
   document.querySelectorAll('.radio-btn').forEach(el => el.classList.remove('selected'));
