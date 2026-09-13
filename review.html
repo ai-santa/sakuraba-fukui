@@ -535,50 +535,51 @@
   </div>
 </div>
 
-<!-- STEP 3: Q③ 良かった点 -->
+<!-- STEP 3: Q③ 召し上がったもの（🔴 この店だけの追加質問・2026-09-13 ようすけさん決定）
+     テンプレートの追加質問枠（venuePoints）を使っている。選択肢は config.js の venuePoints。
+     目的＝お蕎麦などを「食べていない人のクチコミに書かない」ため。一括更新で7問に戻さないこと
+     🔴 2026-09-13 ようすけさん指示で「利用シーンの次」に移動（テンプレでは6番目）。良かった点以降が1つずつ後ろにずれている -->
 <div class="card step" id="step-3">
   <div class="step-label">Q 3 / 8</div>
-  <div class="question-title">良かった点を<br>教えてください</div>
+  <div class="question-title">召し上がったものを<br>教えてください</div>
   <div class="question-sub">複数選択できます</div>
-  <div class="checkbox-group" id="good-points-group"></div>
+  <div class="checkbox-group" id="venue-group"></div>
   <div class="mt-16">
     <button class="btn btn-primary" id="btn-step3-next" onclick="goStep(4)" disabled>次へ</button>
     <button class="btn btn-secondary" onclick="goStep(2)">戻る</button>
   </div>
 </div>
 
-<!-- STEP 4: Q④ おすすめしたい方 -->
+<!-- STEP 4: Q④ 良かった点（開くたびに、選ばれた利用シーンに合わせて buildStep3() が選択肢を作り直す） -->
 <div class="card step" id="step-4">
   <div class="step-label">Q 4 / 8</div>
-  <div class="question-title">どんな方におすすめしたいですか？</div>
+  <div class="question-title">良かった点を<br>教えてください</div>
   <div class="question-sub">複数選択できます</div>
-  <div class="checkbox-group" id="recommendation-group"></div>
+  <div class="checkbox-group" id="good-points-group"></div>
   <div class="mt-16">
     <button class="btn btn-primary" id="btn-step4-next" onclick="goStep(5)" disabled>次へ</button>
     <button class="btn btn-secondary" onclick="goStep(3)">戻る</button>
   </div>
 </div>
 
-<!-- STEP 5: Q⑤ スタッフ・店内の印象 -->
+<!-- STEP 5: Q⑤ おすすめしたい方 -->
 <div class="card step" id="step-5">
   <div class="step-label">Q 5 / 8</div>
-  <div class="question-title">スタッフや店内の印象を<br>教えてください</div>
+  <div class="question-title">どんな方におすすめしたいですか？</div>
   <div class="question-sub">複数選択できます</div>
-  <div class="checkbox-group" id="staff-group"></div>
+  <div class="checkbox-group" id="recommendation-group"></div>
   <div class="mt-16">
     <button class="btn btn-primary" id="btn-step5-next" onclick="goStep(6)" disabled>次へ</button>
     <button class="btn btn-secondary" onclick="goStep(4)">戻る</button>
   </div>
 </div>
 
-<!-- STEP 6: Q⑥ 召し上がったもの（🔴 この店だけの追加質問・2026-09-13 ようすけさん決定）
-     テンプレートの追加質問枠（venuePoints）を使っている。選択肢は config.js の venuePoints。
-     目的＝お蕎麦などを「食べていない人のクチコミに書かない」ため。一括更新で7問に戻さないこと -->
+<!-- STEP 6: Q⑥ スタッフ・店内の印象 -->
 <div class="card step" id="step-6">
   <div class="step-label">Q 6 / 8</div>
-  <div class="question-title">召し上がったものを<br>教えてください</div>
+  <div class="question-title">スタッフや店内の印象を<br>教えてください</div>
   <div class="question-sub">複数選択できます</div>
-  <div class="checkbox-group" id="venue-group"></div>
+  <div class="checkbox-group" id="staff-group"></div>
   <div class="mt-16">
     <button class="btn btn-primary" id="btn-step6-next" onclick="goStep(7)" disabled>次へ</button>
     <button class="btn btn-secondary" onclick="goStep(5)">戻る</button>
@@ -760,9 +761,10 @@ function markPosted() { if (responseId) postSave({ id: responseId, posted: true 
 window.addEventListener('DOMContentLoaded', () => {
   applyConfig();
   buildServices();
-  buildCheckboxGroup('recommendation-group', SALON_CONFIG.recommendations, 'recommendations', 'btn-step4-next');
-  buildCheckboxGroup('staff-group', SALON_CONFIG.staffImpressions, 'staffImpressions', 'btn-step5-next');
-  buildCheckboxGroup('venue-group', SALON_CONFIG.venuePoints || [], 'venuePoints', 'btn-step6-next');
+  // 🔴 この店だけ：召し上がったもの＝Q3、おすすめ＝Q5、スタッフ＝Q6（2026-09-13 質問の順番を入れ替え）
+  buildCheckboxGroup('venue-group', SALON_CONFIG.venuePoints || [], 'venuePoints', 'btn-step3-next');
+  buildCheckboxGroup('recommendation-group', SALON_CONFIG.recommendations, 'recommendations', 'btn-step5-next');
+  buildCheckboxGroup('staff-group', SALON_CONFIG.staffImpressions, 'staffImpressions', 'btn-step6-next');
 });
 
 function applyConfig() {
@@ -804,7 +806,7 @@ function goStep(n) {
     document.getElementById('progress-count').innerHTML = '質問 <b>' + n + '</b> / ' + TOTAL_STEPS;
     document.getElementById('progress-percent').textContent = pct + '%';
   }
-  if (n === 3) buildStep3();
+  if (n === 4) buildStep3();   // 🔴 この店だけ：良かった点は4ページ目（関数名はテンプレのまま）
   if (n === 10) {
     const t = state.tension || 3;
     document.querySelectorAll('#tension-group-result .radio-btn').forEach((b, i) => b.classList.toggle('selected', i === t - 1));
@@ -870,10 +872,10 @@ function buildStep3() {
     const el = document.createElement('div');
     el.className = 'checkbox-item' + (s.negative ? ' negative' : '');
     el.innerHTML = `<div class="checkbox-box"><span class="check-mark">✓</span></div>${s.label}`;
-    el.addEventListener('click', () => toggleCheck(s.id, el, 'goodPoints', 'btn-step3-next'));
+    el.addEventListener('click', () => toggleCheck(s.id, el, 'goodPoints', 'btn-step4-next'));
     g.appendChild(el);
   });
-  document.getElementById('btn-step3-next').disabled = true;
+  document.getElementById('btn-step4-next').disabled = true;
 }
 
 function buildCheckboxGroup(groupId, items, stateKey, btnId) {
