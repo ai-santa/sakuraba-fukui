@@ -1124,7 +1124,9 @@ function buildSystemPrompt(){
 // ===== 人間化エンジン ここまで =====
 
 function buildPrompt() {
-  const getLabels = (ids, source) => ids.map(id => { const f = source.find(x => x.id === id); return f ? f.label : id; });
+  // 🔴 この店だけ：選択肢に aiLabels があれば、AIにはその中からクジで1つ渡す（選択肢の文章の丸写し防止・2026-09-13）
+  const pickLabel = f => (Array.isArray(f.aiLabels) && f.aiLabels.length) ? f.aiLabels[Math.floor(Math.random() * f.aiLabels.length)] : f.label;
+  const getLabels = (ids, source) => ids.map(id => { const f = source.find(x => x.id === id); return f ? pickLabel(f) : id; });
   const allGood = Object.values(SALON_CONFIG.goodPoints).flat();
   const serviceLabels = state.services.map(id => { const s = SALON_CONFIG.services.find(x => x.id === id); return s ? s.label : id; });
   // 中立ネガ（「思い浮かばなかった」系＝具体的な不満の中身がない選択肢）はAIに渡さない。
