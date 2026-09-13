@@ -1045,7 +1045,10 @@ function humanizeDrawPersona(){
   var lengthBands = [{w:40,r:'150〜200文字'},{w:40,r:'200〜260文字'},{w:20,r:'260〜320文字'}];
   return {
     prof: prof,
-    opening: hasFree && Math.random() < 0.6 ? HUMANIZE_OPENINGS_FREE : hPick(HUMANIZE_OPENINGS),
+    // 🔴 この店だけ：config.js に openings / openingFreeRate があればそちらを使う（書き出しがそろうのを防ぐ・2026-09-13）
+    opening: hasFree && Math.random() < (typeof SALON_CONFIG.openingFreeRate === 'number' ? SALON_CONFIG.openingFreeRate : 0.6)
+      ? HUMANIZE_OPENINGS_FREE
+      : hPick((SALON_CONFIG.openings && SALON_CONFIG.openings.length) ? SALON_CONFIG.openings : HUMANIZE_OPENINGS),
     closing: hPick(HUMANIZE_CLOSINGS),
     length: hPickW(lengthBands).r,
     emoji: humanizeEmojiByTension(prof, tension, state.gender),
