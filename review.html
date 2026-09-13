@@ -1125,7 +1125,9 @@ function buildSystemPrompt(){
 
 function buildPrompt() {
   // 🔴 この店だけ：選択肢に aiLabels があれば、AIにはその中からクジで1つ渡す（選択肢の文章の丸写し防止・2026-09-13）
-  const pickLabel = f => (Array.isArray(f.aiLabels) && f.aiLabels.length) ? f.aiLabels[Math.floor(Math.random() * f.aiLabels.length)] : f.label;
+  //   さらに aiLabels の中の {器} {きれい} などは、config.js の labelWords から1回ごとにクジで言葉を選ぶ（表記ゆれ）
+  const fillWords = s => s.replace(/\{([^}]+)\}/g, (m, k) => { const w = (SALON_CONFIG.labelWords || {})[k]; return (Array.isArray(w) && w.length) ? w[Math.floor(Math.random() * w.length)] : k; });
+  const pickLabel = f => (Array.isArray(f.aiLabels) && f.aiLabels.length) ? fillWords(f.aiLabels[Math.floor(Math.random() * f.aiLabels.length)]) : f.label;
   const getLabels = (ids, source) => ids.map(id => { const f = source.find(x => x.id === id); return f ? pickLabel(f) : id; });
   const allGood = Object.values(SALON_CONFIG.goodPoints).flat();
   const serviceLabels = state.services.map(id => { const s = SALON_CONFIG.services.find(x => x.id === id); return s ? s.label : id; });
